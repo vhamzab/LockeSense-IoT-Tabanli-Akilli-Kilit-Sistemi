@@ -2,17 +2,22 @@ import paho.mqtt.client as mqtt
 import time
 import ctypes
 import win32api
+import os
+from dotenv import load_dotenv
 
-# --- AYARLARINIZI BURADAN GİRİN ---
+# .env dosyasından ortam değişkenlerini yükle
+load_dotenv()
+
+# --- AYARLARINIZI .env DOSYASINDAN YÜKLEYİN ---
 # MQTT Broker Bilgileri (ESP32 koduyla aynı olmalı)
-MQTT_SERVER = "broker.hivemq.com"
-MQTT_PORT = 1883
-MQTT_TOPIC = "/pc_kilit/status" 
+MQTT_SERVER = os.getenv("MQTT_SERVER", "broker.hivemq.com")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
+MQTT_TOPIC = os.getenv("MQTT_TOPIC", "/pc_kilit/status")
 
 # KİLİTLEME MANTIĞI EŞİKLERİ
 # Son mesajın üzerinden kaç saniye geçerse kilitlenecek.
 # (ESP32 3 saniyede bir mesaj gönderdiği için 5-7 saniye güvenilir bir aralıktır.)
-LOCK_TIMEOUT_SECONDS = 7 
+LOCK_TIMEOUT_SECONDS = int(os.getenv("LOCK_TIMEOUT_SECONDS", "7")) 
 
 # Sistem Durum Takibi
 last_message_time = time.time()

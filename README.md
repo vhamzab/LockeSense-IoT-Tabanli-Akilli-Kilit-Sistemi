@@ -99,13 +99,20 @@ graph TB
 
 1. Arduino IDE'yi açın
 2. ESP32 board desteğini ekleyin (Board Manager)
-3. `Donanim/ESP32_Kod/esp32_mqtt_publisher.ino` dosyasını açın
-4. Wi-Fi bilgilerinizi girin:
-   ```cpp
-   const char* ssid = "WIFI_ADINIZ";
-   const char* password = "WIFI_SIFRENIZ";
-   ```
-5. Kodu ESP32'ye yükleyin
+3. Gerekli kütüphaneleri yükleyin:
+   - `WiFi` (ESP32 ile birlikte gelir)
+   - `PubSubClient` (Library Manager'dan yükleyin)
+4. `Donanim/ESP32_Kod/esp32_mqtt_publisher.ino` dosyasını açın
+5. **Hassas bilgileri yapılandırın:**
+   - `Donanim/ESP32_Kod/secrets.h.example` dosyasını kopyalayın
+   - `Donanim/ESP32_Kod/secrets.h` olarak kaydedin
+   - Wi-Fi ve MQTT bilgilerinizi girin:
+     ```cpp
+     const char* ssid = "WIFI_ADINIZ";
+     const char* password = "WIFI_SIFRENIZ";
+     const char* mqtt_server = "broker.hivemq.com";
+     ```
+6. Kodu ESP32'ye yükleyin
 
 ### 2. Python Script Kurulumu
 
@@ -114,17 +121,28 @@ graph TB
    ```bash
    pip install -r Yazilim/Bagimliliklar/requirements.txt
    ```
-3. Scripti çalıştırın:
+3. **Hassas bilgileri yapılandırın:**
+   - `Yazilim/Python_Script/env.example` dosyasını kopyalayın
+   - `Yazilim/Python_Script/.env` olarak kaydedin
+   - MQTT ayarlarınızı kontrol edin (varsayılan değerler genellikle yeterlidir)
+4. Scripti çalıştırın:
    ```bash
    python Yazilim/Python_Script/mqtt_lock_manager.py
    ```
 
 ### 3. Yapılandırma
 
-Her iki dosyada da MQTT broker ve topic ayarlarının aynı olduğundan emin olun:
+**ÖNEMLİ:** Her iki dosyada da MQTT broker ve topic ayarlarının aynı olduğundan emin olun:
 - **MQTT Broker**: `broker.hivemq.com` (veya kendi broker'ınız)
 - **MQTT Topic**: `/pc_kilit/status`
-- **Kilit Zaman Aşımı**: 7 saniye (Python scriptinde ayarlanabilir)
+- **Kilit Zaman Aşımı**: 7 saniye (`.env` dosyasında ayarlanabilir)
+
+### 4. Güvenlik Notları
+
+⚠️ **Hassas bilgiler GitHub'a yüklenmez:**
+- `secrets.h` ve `.env` dosyaları `.gitignore` ile korunmaktadır
+- Bu dosyaları manuel olarak oluşturmanız gerekmektedir
+- Örnek dosyalar (`secrets.h.example` ve `env.example`) referans için mevcuttur
 
 ---
 

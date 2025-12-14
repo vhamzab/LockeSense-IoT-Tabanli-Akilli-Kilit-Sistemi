@@ -1,18 +1,9 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include "secrets.h"  // Hassas bilgiler bu dosyadan yüklenir
 
-// --- AYARLARINIZI BURADAN GİRİN ---
-// Wi-Fi Bilgileri
-const char* ssid = "deneme";
-const char* password = "tavadahamsi";
-
-// MQTT Broker (Sunucu) Bilgileri
-const char* mqtt_server = "broker.hivemq.com"; // Örnek genel broker
-const int mqtt_port = 1883;
-
-// MQTT Konusu (Topic) - Bu isim hem ESP32 hem de PC'de aynı OLMALIDIR
-const char* mqtt_topic = "/pc_kilit/status"; 
-// ------------------------------------
+// NOT: Hassas bilgiler (Wi-Fi şifresi, MQTT sunucu bilgileri vb.) 
+// secrets.h dosyasında saklanmaktadır. Bu dosyayı oluşturmayı unutmayın!
 
 WiFiClient espClient;
 PubSubClient client(espClient);

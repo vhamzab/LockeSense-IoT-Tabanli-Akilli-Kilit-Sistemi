@@ -6,6 +6,9 @@ paho-mqtt
 # Windows API Erişimi için (PC kilitleme işlemleri)
 pywin32
 
+# Ortam değişkenleri (.env dosyası) için
+python-dotenv
+
 # Not: time ve ctypes modülleri Python'un standart kütüphanesinde bulunmaktadır,
 # bu yüzden ayrıca yüklenmelerine gerek yoktur.
 
