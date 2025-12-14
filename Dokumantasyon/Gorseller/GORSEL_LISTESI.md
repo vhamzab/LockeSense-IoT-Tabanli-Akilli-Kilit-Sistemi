@@ -92,7 +92,7 @@ MQTT Broker'a Bağlandı. Sonuç kodu: 0
 **Görülecekler**:
 ```
 Wi-Fi Bağlantısı Başarılı!
-IP Adresi: 192.168.33.167
+IP Adresi: 192.168.1.XXX
 MQTT Broker'a bağlanılıyor...Bağlandı.
 MQTT Mesajı Yayınlandı: MEVCUT
 MQTT Mesajı Yayınlandı: MEVCUT

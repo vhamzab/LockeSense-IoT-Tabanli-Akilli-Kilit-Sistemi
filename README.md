@@ -161,7 +161,7 @@ graph TB
 ### Arduino Serial Monitor
 ![Arduino Serial Monitor](Dokumantasyon/Gorseller/05_arduino_ide_serial_monitor.jpg)
 
-*ESP32'nin Serial Monitor çıktısı. Wi-Fi bağlantısı başarılı (IP: 192.168.33.167), MQTT broker'a bağlanıldı ve her 3 saniyede bir "MEVCUT" mesajı gönderiliyor.*
+*ESP32'nin Serial Monitor çıktısı. Wi-Fi bağlantısı başarılı (IP: 192.168.1.XXX), MQTT broker'a bağlanıldı ve her 3 saniyede bir "MEVCUT" mesajı gönderiliyor.*
 
 ### Sistem Akış Şeması
 ![Sistem Akış Şeması](Dokumantasyon/Gorseller/07_sistem_akis_semasi.jpg)
