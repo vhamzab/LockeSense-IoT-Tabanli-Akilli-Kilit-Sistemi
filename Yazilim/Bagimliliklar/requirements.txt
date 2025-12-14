@@ -1,0 +1,11 @@
+# Python Betiğinin Çalışması İçin Gerekli Kütüphaneler
+
+# MQTT İletişimi için
+paho-mqtt
+
+# Windows API Erişimi için (PC kilitleme işlemleri)
+pywin32
+
+# Not: time ve ctypes modülleri Python'un standart kütüphanesinde bulunmaktadır,
+# bu yüzden ayrıca yüklenmelerine gerek yoktur.
+
