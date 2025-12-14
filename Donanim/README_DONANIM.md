@@ -101,26 +101,30 @@ Eğer gelecekte ek özellikler eklemek isterseniz:
 1. Arduino IDE'yi açın
 2. **File → Open** menüsünden `ESP32_Kod/esp32_mqtt_publisher.ino` dosyasını açın
 
-### Adım 2: Wi-Fi Ayarlarını Yapılandırma
+### Adım 2: Hassas Bilgileri Yapılandırma (GÜVENLİK)
 
-Kod içinde aşağıdaki satırları bulun ve kendi Wi-Fi bilgilerinizi girin:
+⚠️ **ÖNEMLİ**: Hassas bilgiler (Wi-Fi şifresi, MQTT ayarları) artık `secrets.h` dosyasında saklanmaktadır.
+
+1. `secrets.h.example` dosyasını kopyalayın
+2. `secrets.h` olarak kaydedin (aynı klasörde)
+3. Kendi bilgilerinizi girin:
 
 ```cpp
 // Wi-Fi Bilgileri
 const char* ssid = "WIFI_AG_ADINIZ";        // Wi-Fi ağ adınız
 const char* password = "WIFI_SIFRENIZ";     // Wi-Fi şifreniz
-```
 
-### Adım 3: MQTT Broker Ayarları
-
-MQTT broker bilgilerini kontrol edin (Python scripti ile aynı olmalı):
-
-```cpp
 // MQTT Broker (Sunucu) Bilgileri
 const char* mqtt_server = "broker.hivemq.com";  // Broker adresi
 const int mqtt_port = 1883;                      // Port numarası
 const char* mqtt_topic = "/pc_kilit/status";      // Topic (Python ile aynı olmalı)
 ```
+
+**Güvenlik Notu**: `secrets.h` dosyası `.gitignore` ile korunur ve GitHub'a yüklenmez. Sadece yerel olarak kullanılır.
+
+### Adım 3: MQTT Broker Ayarlarını Kontrol Etme
+
+MQTT broker bilgilerinin Python scripti ile aynı olduğundan emin olun (her ikisi de `secrets.h` ve `.env` dosyalarında tanımlı olmalıdır).
 
 ### Adım 4: Kodu Yükleme
 
