@@ -35,8 +35,8 @@ graph TD
     subgraph "Sunucu/İstemci (Yazılım)"
         B -->|Subscribe| C["Python Yönetim Servisi"]
         C -->|Varlık Takibi| D{"Sinyal Analizi"}
-        D -->|Sinyal Yok (7s)| E["Windows API: Sistemi Kilitle"]
-        D -->|Sinyal Var| F["Sistemi Açık Tut"]
+        D -- "Sinyal Yok (7s)" --> E["Windows API - Sistemi Kilitle"]
+        D -- "Sinyal Var" --> F["Sistemi Açık Tut"]
     end
 
     style A fill:#e1f5fe,stroke:#01579b,stroke-width:2px
