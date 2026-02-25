@@ -1,237 +1,128 @@
-# LockeSense
+# LockeSense: IoT Tabanlı Akıllı Güvenlik ve Erişim Sistemi
 
-**İnsan faktörünü devreden çıkaran, düşük maliyetli IoT tabanlı bir güvenlik çözümü.**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-blue.svg)](https://www.microsoft.com/windows)
+[![Hardware: ESP32](https://img.shields.io/badge/Hardware-ESP32-green.svg)](https://www.espressif.com/en/products/socs/esp32)
+
+**LockeSense**, insan faktöründen kaynaklanan güvenlik açıklarını minimize etmek amacıyla geliştirilmiş, düşük maliyetli ve yüksek verimli bir IoT tabanlı otomatik kilitleme çözümüdür. Kullanıcının fiziksel varlığını bir ESP32 cihazı üzerinden takip ederek, bilgisayarın güvenliğini otonom bir şekilde yönetir.
 
 ---
 
-## 🎯 Problem / Çözüm
+## 📖 Proje Hakkında
 
-### Gözetimsiz Erişim Riski
-Geleneksel güvenlik sistemleri, kullanıcıların manuel olarak bilgisayarlarını kilitlemelerine bağlıdır. Ancak insan faktörü her zaman güvenilir değildir:
-- Kullanıcılar bilgisayarlarını kilitlemeyi unutabilir
-- Acil durumlarda bilgisayar açık bırakılabilir
-- Güvenlik farkındalığı yetersiz olabilir
+Geleneksel güvenlik protokolleri, kullanıcıların sistem başından ayrılırken manuel müdahalesini (örn. `Win + L`) gerektirir. LockeSense, bu süreci tamamen otomatize ederek "sürtünmesiz güvenlik" (frictionless security) sunar.
 
-### Sürtünmesiz Güvenlik
-LockeSense, bu sorunu **otomatik ve şeffaf** bir şekilde çözer:
-- ✅ Kullanıcı cihazı yanında taşır
-- ✅ Sistem otomatik olarak varlığı algılar
-- ✅ Cihaz menzil dışına çıktığında PC otomatik kilitlenir
-- ✅ Kullanıcı geri döndüğünde sistem hazır olur
-- ✅ **Hiçbir manuel müdahale gerekmez**
+### Temel Problemler ve Çözümler
+*   **Problem:** Kullanıcıların bilgisayarlarını kilitlemeyi unutması veya acil durumlarda açık bırakması.
+*   **Çözüm:** Kullanıcının yanında taşıdığı ESP32 tabanlı bir "beacon" cihazı ile varlık tespiti ve otonom kilitleme.
+*   **Problem:** Karmaşık ve pahalı kurumsal güvenlik sistemleri.
+*   **Çözüm:** Açık kaynaklı yazılım ve uygun maliyetli donanım bileşenleri ile erişilebilir güvenlik.
 
 ---
 
 ## 🏗️ Teknik Mimari
 
+LockeSense, düşük gecikme süreli ve güvenilir bir iletişim için **MQTT (Message Queuing Telemetry Transport)** protokolünü kullanır.
+
 ### Sistem Akış Şeması
 
 ```mermaid
-graph TB
-    A[ESP32 Cihazı] -->|Wi-Fi Bağlantısı| B[Wi-Fi Ağı]
-    B -->|MQTT Protokolü| C[MQTT Broker]
-    A -->|Her 3 Saniyede 'MEVCUT' Mesajı| C
-    C -->|Mesaj Yayınlama| D[Python Script]
-    D -->|Mesaj Kontrolü| E{Mesaj Geldi mi?}
-    E -->|Evet| F[Zamanlayıcı Sıfırla]
-    E -->|Hayır - 7 Saniye Geçti| G[PC'yi Kilitle]
-    F -->|PC Açık Kalır| H[Kullanıcı Çalışmaya Devam Eder]
-    G -->|Güvenlik Sağlandı| I[Kilit Ekranı]
-    A -.->|Cihaz Menzil Dışı| J[Mesaj Gelmez]
-    J --> E
-    
-    style A fill:#4CAF50,stroke:#2E7D32,color:#fff
-    style C fill:#2196F3,stroke:#1565C0,color:#fff
-    style D fill:#FF9800,stroke:#E65100,color:#fff
-    style G fill:#F44336,stroke:#C62828,color:#fff
-    style H fill:#4CAF50,stroke:#2E7D32,color:#fff
+graph TD
+    subgraph "Uç Cihaz (Donanım)"
+        A["ESP32 Beacon"] -->|Wi-Fi| B["MQTT Broker (HiveMQ/Local)"]
+    end
+
+    subgraph "Sunucu/İstemci (Yazılım)"
+        B -->|Subscribe| C["Python Yönetim Servisi"]
+        C -->|Varlık Takibi| D{"Sinyal Analizi"}
+        D -->|Sinyal Yok (7s)| E["Windows API: Sistemi Kilitle"]
+        D -->|Sinyal Var| F["Sistemi Açık Tut"]
+    end
+
+    style A fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style C fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style E fill:#ffebee,stroke:#c62828,stroke-width:2px
 ```
 
-### Bileşenler
-
-#### 1. **ESP32 Mikrodenetleyici**
-- Wi-Fi bağlantısı kurar
-- MQTT broker'a bağlanır
-- Her 3 saniyede bir "MEVCUT" sinyali gönderir
-- Düşük güç tüketimi ile uzun süreli çalışma
-
-#### 2. **MQTT Broker**
-- ESP32 ve PC arasında iletişim köprüsü
-- Pub/Sub (Yayınlama/Abonelik) mimarisi
-- Gerçek zamanlı mesajlaşma
-
-#### 3. **Python Yönetim Scripti**
-- MQTT mesajlarını dinler
-- Zamanlayıcı ile güvenlik kontrolü yapar
-- Windows API ile PC kilitleme işlemi gerçekleştirir
-- Otomatik yeniden bağlanma mekanizması
+### Bileşen Detayları
+1.  **Donanım Katmanı**: ESP32 mikrodenetleyicisi, optimize edilmiş güç tüketimi ile 3 saniyelik aralıklarla "MEVCUT" sinyali yayınlar.
+2.  **İletişim Katmanı**: MQTT Broker, cihaz ve PC arasında köprü görevi görerek mesaj trafiğini yönetir.
+3.  **Mantıksal Katman**: Python tabanlı arka plan servisi, gelen sinyalleri işler ve tanımlanan zaman aşımı (timeout) parametrelerine göre Windows kilit mekanizmasını tetikler.
 
 ---
 
-## 🚀 Özellikler
+## 🛡️ Güvenlik ve Gizlilik
 
-- 🔒 **Otomatik Kilitleme**: Cihaz menzil dışına çıktığında otomatik kilit
-- ⚡ **Gerçek Zamanlı İzleme**: 3 saniyede bir varlık kontrolü
-- 🔄 **Otomatik Yeniden Bağlanma**: Bağlantı kopmalarında otomatik düzeltme
-- 💰 **Düşük Maliyet**: ESP32 ve açık kaynak yazılım
-- 🛡️ **Güvenli**: Windows API ile sistem seviyesi kilitleme
-- 📱 **Taşınabilir**: Küçük ve hafif cihaz tasarımı
+LockeSense, güvenlik odaklı bir tasarım prensibi benimser:
+*   **Yerel Kontrol**: Sistem, Windows'un native kilit API'lerini kullanarak en üst düzeyde sistem entegrasyonu sağlar.
+*   **Veri Gizliliği**: `.env` ve `secrets.h` yapılandırmaları ile Wi-Fi ve MQTT kimlik bilgileri repo dışında tutulur.
+*   **Manipülasyon Koruması**: Beklenmedik bağlantı kopmalarında sistem güvenli tarafta kalmak adına (fail-secure) kilitleme eğilimindedir.
 
 ---
 
-## 📋 Gereksinimler
+## 🚀 Hızlı Başlangıç
 
-### Donanım
-- ESP32 DevKit V1 (veya uyumlu model)
-- Wi-Fi erişimi olan ağ
-- Windows işletim sistemi (PC kilitleme için)
+### 🔧 Donanım Kurulumu
+1.  `Donanim/ESP32_Kod/secrets.h.example` dosyasını `secrets.h` olarak kopyalayın.
+2.  Wi-Fi ve MQTT bilgilerinizi girin.
+3.  Arduino IDE üzerinden kodu ESP32 cihazınıza yükleyin.
+4.  Detaylı rehber: [Donanım Dokümantasyonu](Donanim/README_DONANIM.md)
 
-### Yazılım
-- Arduino IDE (ESP32 programlama için)
-- Python 3.x
-- Gerekli Python kütüphaneleri (bkz. `Yazilim/Bagimliliklar/requirements.txt`)
-
----
-
-## 🔧 Kurulum
-
-### 1. ESP32 Kurulumu
-
-1. Arduino IDE'yi açın
-2. ESP32 board desteğini ekleyin (Board Manager)
-3. Gerekli kütüphaneleri yükleyin:
-   - `WiFi` (ESP32 ile birlikte gelir)
-   - `PubSubClient` (Library Manager'dan yükleyin)
-4. `Donanim/ESP32_Kod/esp32_mqtt_publisher.ino` dosyasını açın
-5. **Hassas bilgileri yapılandırın:**
-   - `Donanim/ESP32_Kod/secrets.h.example` dosyasını kopyalayın
-   - `Donanim/ESP32_Kod/secrets.h` olarak kaydedin
-   - Wi-Fi ve MQTT bilgilerinizi girin:
-     ```cpp
-     const char* ssid = "WIFI_ADINIZ";
-     const char* password = "WIFI_SIFRENIZ";
-     const char* mqtt_server = "broker.hivemq.com";
-     ```
-6. Kodu ESP32'ye yükleyin
-
-### 2. Python Script Kurulumu
-
-1. Python 3.x'in yüklü olduğundan emin olun
-2. Bağımlılıkları yükleyin:
-   ```bash
-   pip install -r Yazilim/Bagimliliklar/requirements.txt
-   ```
-3. **Hassas bilgileri yapılandırın:**
-   - `Yazilim/Python_Script/env.example` dosyasını kopyalayın
-   - `Yazilim/Python_Script/.env` olarak kaydedin
-   - MQTT ayarlarınızı kontrol edin (varsayılan değerler genellikle yeterlidir)
-4. Scripti çalıştırın:
-   ```bash
-   python Yazilim/Python_Script/mqtt_lock_manager.py
-   ```
-
-### 3. Yapılandırma
-
-**ÖNEMLİ:** Her iki dosyada da MQTT broker ve topic ayarlarının aynı olduğundan emin olun:
-- **MQTT Broker**: `broker.hivemq.com` (veya kendi broker'ınız)
-- **MQTT Topic**: `/pc_kilit/status`
-- **Kilit Zaman Aşımı**: 7 saniye (`.env` dosyasında ayarlanabilir)
-
-### 4. Güvenlik Notları
-
-⚠️ **Hassas bilgiler GitHub'a yüklenmez:**
-- `secrets.h` ve `.env` dosyaları `.gitignore` ile korunmaktadır
-- Bu dosyaları manuel olarak oluşturmanız gerekmektedir
-- Örnek dosyalar (`secrets.h.example` ve `env.example`) referans için mevcuttur
+### 💻 Yazılım Kurulumu
+1.  Python 3.x gereksinimlerini yükleyin:
+    ```bash
+    pip install -r Yazilim/Bagimliliklar/requirements.txt
+    ```
+2.  Python servisini başlatın:
+    ```bash
+    python Yazilim/Python_Script/mqtt_lock_manager.py
+    ```
+3.  Detaylı rehber: [Yazılım Dokümantasyonu](Yazilim/README_YAZILIM.md)
 
 ---
 
-## 📸 Demo
+## 📋 Yol Haritası (Roadmap)
 
-### Sistem Çalışma Hali
-![Sistem Çalışma Hali](Dokumantasyon/Gorseller/01_mvp_sistem_calisma_hali.jpg)
-
-*ESP32 DevKit V1 cihazı laptop üzerinde çalışır durumda. Arduino IDE ve Python script'i aynı anda çalışıyor. Yeşil LED'ler sistemin aktif olduğunu gösteriyor.*
-
-### Python Script Çıktısı
-![Python Script Çıktısı](Dokumantasyon/Gorseller/03_python_script_cikti.jpg)
-
-*Python script'inin konsol çıktısı. MQTT broker'a başarıyla bağlanıldı (`broker.hivemq.com`), `/pc_kilit/status` topic'ine abone olundu ve "MEVCUT" mesajları alınıyor. Sistem "UNLOCKED" durumunda.*
-
-### Arduino Serial Monitor
-![Arduino Serial Monitor](Dokumantasyon/Gorseller/05_arduino_ide_serial_monitor.jpg)
-
-*ESP32'nin Serial Monitor çıktısı. Wi-Fi bağlantısı başarılı (IP: 192.168.1.XXX), MQTT broker'a bağlanıldı ve her 3 saniyede bir "MEVCUT" mesajı gönderiliyor.*
-
-### Sistem Akış Şeması
-![Sistem Akış Şeması](Dokumantasyon/Gorseller/07_sistem_akis_semasi.jpg)
-
-*Sistemin teknik mimarisi: ESP32 → MQTT Broker → Python Script → Windows Lock/Unlock karar mekanizması.*
-
-> **Not**: Tüm görseller `Dokumantasyon/Gorseller/` klasöründe bulunmaktadır. Görsel ekleme talimatları için [Görseller README](Dokumantasyon/Gorseller/README.md) dosyasına bakınız.
+- [ ] **Güç Optimizasyonu**: ESP32 için Deep Sleep modunun entegrasyonu.
+- [ ] **Bağlantı Çeşitliliği**: Bluetooth Low Energy (BLE) desteğinin eklenmesi.
+- [ ] **Mobil Uygulama**: Cihaz durumunu izlemek için bir kontrol paneli.
+- [ ] **Çoklu OS Desteği**: macOS ve Linux sistemleri için kilitleme scriptleri.
 
 ---
 
-## 📁 Proje Yapısı
+## 🔍 Sorun Giderme
 
-```
-LockeSense/
-├── Donanim/
-│   ├── ESP32_Kod/          # Arduino .ino dosyaları
-│   └── README_DONANIM.md   # Donanım dokümantasyonu
-├── Yazilim/
-│   ├── Python_Script/      # Ana Python scripti
-│   ├── Bagimliliklar/      # requirements.txt
-│   └── README_YAZILIM.md   # Yazılım dokümantasyonu
-├── Dokumantasyon/
-│   ├── Sunumlar/           # Ideathon sunum dosyaları (PPT/PDF)
-│   └── Gorseller/          # MVP fotoğrafları ve görseller
-├── LICENSE                 # MIT Lisansı
-└── README.md               # Bu dosya
-```
+| Sorun | Olası Neden | Çözüm |
+| :--- | :--- | :--- |
+| ESP32 bağlanamıyor | Yanlış Wi-Fi Bilgisi | `secrets.h` dosyasını kontrol edin. |
+| Zaman aşımı hatası | MQTT Topic uyumsuzluğu | Hem kodda hem scriptte Topic adını doğrulayın. |
+| PC kilitlenmiyor | Python yetki sorunu | Terminali yönetici olarak çalıştırmayı deneyin. |
 
 ---
 
-## 🛠️ Geliştirme
+## 🤝 Katkıda Bulunma
 
-### Katkıda Bulunma
-
-1. Bu repository'yi fork edin
-2. Yeni bir branch oluşturun (`git checkout -b feature/yeni-ozellik`)
-3. Değişikliklerinizi commit edin (`git commit -am 'Yeni özellik eklendi'`)
-4. Branch'inizi push edin (`git push origin feature/yeni-ozellik`)
-5. Pull Request oluşturun
-
-### Sorun Bildirimi
-
-Herhangi bir sorun veya öneri için [Issues](../../issues) bölümünü kullanabilirsiniz.
+Projeye katkıda bulunmak isterseniz lütfen önce bir [Issue](../../issues) açarak yapmak istediğiniz değişikliği tartışın. Pull Request'leriniz titizlikle incelenecektir.
 
 ---
 
 ## 📄 Lisans
 
-Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakınız.
+Bu proje **MIT Lisansı** altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına göz atın.
 
 ---
 
-## 👥 Ekip
+## 👥 Geliştirme Ekibi
 
-Bu proje bir Ideathon projesi olarak geliştirilmiştir.
-
-## 📊 Sunum
-
-Proje sunumu için [Sunumlar klasörüne](Dokumantasyon/Sunumlar/) bakabilirsiniz.
-- **Ana Sunum**: [01_ideathon_sunum.pptx](Dokumantasyon/Sunumlar/01_ideathon_sunum.pptx)
-- **Sunum Hazırlama Rehberi**: [SUNUM_HAZIRLAMA_REHBERI.md](Dokumantasyon/Sunumlar/SUNUM_HAZIRLAMA_REHBERI.md)
+*   **Nezir Erdoğan**
+*   **Vahit Hamza Baran**
+*   **Miray Tiryaki**
+*   **Nuran Ergenç**
 
 ---
 
 ## 🙏 Teşekkürler
 
-- ESP32 topluluğu
-- MQTT protokolü geliştiricileri
-- Açık kaynak topluluğu
+Bu çalışma, bir Ideathon projesi kapsamında geliştirilmiştir. Geliştirme sürecinde katkısı bulunan tüm açık kaynak topluluklarına teşekkür ederiz.
 
----
-
-**⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!**
+**⭐ Proje vizyonumuzu desteklemek için yıldız vermeyi unutmayın!**
